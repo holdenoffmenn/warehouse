@@ -16,6 +16,8 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
   String _searchQuery = '';
   String _selectedStatus = 'Todos';
 
+  final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
   @override
   void initState() {
     super.initState();
@@ -158,6 +160,7 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
                               idSolicitacao: solicitacao['id_solicitacao'],
                               webSocketService: _webSocketService.createNewInstance(),
                             ),
+                            settings: RouteSettings(arguments: routeObserver),
                           ),
                         );
                       }

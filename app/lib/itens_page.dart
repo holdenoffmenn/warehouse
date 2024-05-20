@@ -13,7 +13,7 @@ class ItensPage extends StatefulWidget {
   _ItensPageState createState() => _ItensPageState();
 }
 
-class _ItensPageState extends State<ItensPage> {
+class _ItensPageState extends State<ItensPage> with RouteAware {
   late WebSocketService _localWebSocketService;
   List<dynamic> _itens = [];
 
@@ -21,6 +21,7 @@ class _ItensPageState extends State<ItensPage> {
   void initState() {
     super.initState();
     _localWebSocketService = widget.webSocketService.createNewInstance();
+    _loadData();
     _localWebSocketService.messages.listen((data) {
       if (data['action'] == 'itensData') {
         setState(() {
@@ -28,7 +29,9 @@ class _ItensPageState extends State<ItensPage> {
         });
       }
     });
+  }
 
+  void _loadData() {
     _localWebSocketService.sendMessage(json.encode({'action': 'getItens', 'id_solicitacao': widget.idSolicitacao}));
   }
 
@@ -36,6 +39,25 @@ class _ItensPageState extends State<ItensPage> {
   void dispose() {
     _localWebSocketService.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final observer = ModalRoute.of(context)?.settings.arguments as RouteObserver<ModalRoute<void>>?;
+    if (observer != null) {
+      observer.subscribe(this, ModalRoute.of(context)!);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    _loadData();
+  }
+
+  @override
+  void didPushNext() {
+    // Called when a new route has been pushed, and the current route is no longer visible.
   }
 
   IconData getStatusIcon(String status) {
@@ -89,7 +111,7 @@ class _ItensPageState extends State<ItensPage> {
                       webSocketService: _localWebSocketService.createNewInstance(),
                     ),
                   ),
-                );
+                ).then((_) => _loadData());
               },
               child: Card(
                 shape: RoundedRectangleBorder(
