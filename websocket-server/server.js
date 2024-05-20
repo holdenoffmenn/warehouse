@@ -46,7 +46,7 @@ function checkForUpdates() {
   });
 }
 
-// Verifica atualizações a cada 1 segundo
+// Verifica atualizações a cada 5 segundos
 setInterval(checkForUpdates, 1000);
 
 wss.on('connection', ws => {
@@ -67,6 +67,15 @@ wss.on('connection', ws => {
           ws.send(JSON.stringify({ error: 'Erro ao consultar o banco de dados' }));
         } else {
           ws.send(JSON.stringify({ action: 'solicitacoesData', data: results }));
+        }
+      });
+    } else if (data.action === 'getItens') {
+      // Consulta ao banco de dados para obter os itens da solicitação
+      db.query('SELECT * FROM itens WHERE solicitacao = ?', [data.id_solicitacao], (err, results) => {
+        if (err) {
+          ws.send(JSON.stringify({ error: 'Erro ao consultar o banco de dados' }));
+        } else {
+          ws.send(JSON.stringify({ action: 'itensData', data: results }));
         }
       });
     }

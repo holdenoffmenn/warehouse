@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'websocket_service.dart';
+import 'itens_page.dart';
 
 class SolicitacoesPage extends StatefulWidget {
   @override
@@ -147,56 +148,71 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
                   final bool isToday = DateFormat('yyyy-MM-dd').format(horaSolicitacao) ==
                       DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    elevation: 5,
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: getStatusColor(solicitacao['status']),
-                        child: Icon(
-                          getStatusIcon(solicitacao['status']),
-                          color: Colors.white,
+                  return GestureDetector(
+                    onTap: () {
+                      if (solicitacao['status'] == 'ABERTO') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ItensPage(
+                              idSolicitacao: solicitacao['id_solicitacao'],
+                              webSocketService: _webSocketService.createNewInstance(),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      elevation: 5,
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: getStatusColor(solicitacao['status']),
+                          child: Icon(
+                            getStatusIcon(solicitacao['status']),
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        solicitacao['linha_solicitante'],
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('ID: ${solicitacao['id_solicitacao']}'),
-                              Text('Hora: $horaFormatada'),
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: isToday ? Colors.green : Colors.red,
-                                  borderRadius: BorderRadius.circular(12),
+                        title: Text(
+                          solicitacao['linha_solicitante'],
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('ID: ${solicitacao['id_solicitacao']}'),
+                                Text('Hora: $horaFormatada'),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: isToday ? Colors.green : Colors.red,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    isToday ? 'Hoje' : 'Antiga',
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                                child: Text(
-                                  isToday ? 'Hoje' : 'Antiga',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      trailing: Icon(
-                        getStatusIcon(solicitacao['status']),
-                        color: getStatusColor(solicitacao['status']),
-                        size: 30,
+                              ],
+                            ),
+                          ],
+                        ),
+                        trailing: Icon(
+                          getStatusIcon(solicitacao['status']),
+                          color: getStatusColor(solicitacao['status']),
+                          size: 30,
+                        ),
                       ),
                     ),
                   );

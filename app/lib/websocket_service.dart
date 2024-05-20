@@ -5,7 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class WebSocketService {
   final String url;
   late WebSocketChannel _channel;
-  final _controller = StreamController<dynamic>();
+  final _controller = StreamController<dynamic>.broadcast();
   Timer? _reconnectTimer;
 
   WebSocketService(this.url) {
@@ -17,7 +17,9 @@ class WebSocketService {
 
     _channel.stream.listen(
           (message) {
-        _controller.add(json.decode(message));
+        if (!_controller.isClosed) {
+          _controller.add(json.decode(message));
+        }
       },
       onError: (error) {
         print('WebSocket error: $error');
@@ -48,5 +50,9 @@ class WebSocketService {
     _reconnectTimer?.cancel();
     _channel.sink.close();
     _controller.close();
+  }
+
+  WebSocketService createNewInstance() {
+    return WebSocketService(url);
   }
 }
