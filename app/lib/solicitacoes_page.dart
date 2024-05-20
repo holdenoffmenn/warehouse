@@ -23,7 +23,7 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
       if (data['action'] == 'solicitacoesData') {
         setState(() {
           _solicitacoes = data['data'];
-          _filteredSolicitacoes = _solicitacoes;
+          _filterSolicitacoes();
         });
       }
     });
@@ -44,6 +44,18 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
         final matchesQuery = solicitacao['linha_solicitante'].toLowerCase().contains(_searchQuery.toLowerCase());
         return matchesStatus && matchesQuery;
       }).toList();
+
+      _filteredSolicitacoes.sort((a, b) {
+        if (a['status'] == 'ABERTO' && b['status'] != 'ABERTO') {
+          return -1;
+        } else if (a['status'] != 'ABERTO' && b['status'] == 'ABERTO') {
+          return 1;
+        } else {
+          DateTime horaA = DateTime.parse(a['hora_solicitacao']);
+          DateTime horaB = DateTime.parse(b['hora_solicitacao']);
+          return horaB.compareTo(horaA);
+        }
+      });
     });
   }
 
