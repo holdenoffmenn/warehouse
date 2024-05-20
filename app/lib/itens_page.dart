@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'websocket_service.dart';
+import 'leitura_page.dart';
 
 class ItensPage extends StatefulWidget {
   final String idSolicitacao;
@@ -77,30 +77,45 @@ class _ItensPageState extends State<ItensPage> {
           itemCount: _itens.length,
           itemBuilder: (context, index) {
             final item = _itens[index];
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              elevation: 5,
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: getStatusColor(item['status_item']),
-                  child: Icon(
-                    getStatusIcon(item['status_item']),
-                    color: Colors.white,
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LeituraPage(
+                      idItem: item['id_item'],
+                      quantidadeSolicitada: item['quantidade_solicitada'],
+                      quantidadeColetada: item['quantidade_coletada'],
+                      webSocketService: _localWebSocketService.createNewInstance(),
+                    ),
                   ),
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
                 ),
-                title: Text(
-                  item['nome_item'],
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('ID Item: ${item['id_item']}'),
-                    Text('Quantidade Solicitada: ${item['quantidade_solicitada']}'),
-                    Text('Quantidade Coletada: ${item['quantidade_coletada']}'),
-                  ],
+                elevation: 5,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: getStatusColor(item['status_item']),
+                    child: Icon(
+                      getStatusIcon(item['status_item']),
+                      color: Colors.white,
+                    ),
+                  ),
+                  title: Text(
+                    item['nome_item'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ID Item: ${item['id_item']}'),
+                      Text('Quantidade Solicitada: ${item['quantidade_solicitada']}'),
+                      Text('Quantidade Coletada: ${item['quantidade_coletada']}'),
+                    ],
+                  ),
                 ),
               ),
             );

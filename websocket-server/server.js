@@ -47,7 +47,7 @@ function checkForUpdates() {
 }
 
 // Verifica atualizações a cada 5 segundos
-setInterval(checkForUpdates, 1000);
+setInterval(checkForUpdates, 5000);
 
 wss.on('connection', ws => {
   console.log('Cliente conectado');
@@ -76,6 +76,22 @@ wss.on('connection', ws => {
           ws.send(JSON.stringify({ error: 'Erro ao consultar o banco de dados' }));
         } else {
           ws.send(JSON.stringify({ action: 'itensData', data: results }));
+        }
+      });
+    } else if (data.action === 'updateQuantidadeColetada') {
+      db.query('UPDATE itens SET quantidade_coletada = ? WHERE id_item = ?', [data.quantidade_coletada, data.id_item], (err, results) => {
+        if (err) {
+          ws.send(JSON.stringify({ error: 'Erro ao atualizar a quantidade coletada' }));
+        } else {
+          ws.send(JSON.stringify({ action: 'updateSuccess' }));
+        }
+      });
+    } else if (data.action === 'updateItemStatus') {
+      db.query('UPDATE itens SET status_item = ?, quantidade_coletada = ? WHERE id_item = ?', [data.status_item, data.quantidade_coletada, data.id_item], (err, results) => {
+        if (err) {
+          ws.send(JSON.stringify({ error: 'Erro ao atualizar o status do item' }));
+        } else {
+          ws.send(JSON.stringify({ action: 'updateSuccess' }));
         }
       });
     }
