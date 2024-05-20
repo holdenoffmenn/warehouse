@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'websocket_service.dart';
-import 'itens_page.dart';
+import 'itens_page.dart';  // Certifique-se de importar ItensPage
 
 class SolicitacoesPage extends StatefulWidget {
   @override
@@ -21,7 +21,7 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
   @override
   void initState() {
     super.initState();
-    _webSocketService = WebSocketService('ws://10.0.2.2:8080');
+    _webSocketService = WebSocketService('ws://192.168.100.62:8080');
     _webSocketService.messages.listen((data) {
       if (data['action'] == 'solicitacoesData') {
         setState(() {
@@ -152,18 +152,16 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
 
                   return GestureDetector(
                     onTap: () {
-                      if (solicitacao['status'] == 'ABERTO') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ItensPage(
-                              idSolicitacao: solicitacao['id_solicitacao'],
-                              webSocketService: _webSocketService.createNewInstance(),
-                            ),
-                            settings: RouteSettings(arguments: routeObserver),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ItensPage(
+                            idSolicitacao: solicitacao['id_solicitacao'],
+                            webSocketService: _webSocketService.createNewInstance(),
                           ),
-                        );
-                      }
+                          settings: RouteSettings(arguments: routeObserver),
+                        ),
+                      );
                     },
                     child: Card(
                       shape: RoundedRectangleBorder(

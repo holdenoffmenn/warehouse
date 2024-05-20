@@ -9,12 +9,14 @@ class LeituraPage extends StatefulWidget {
   final int quantidadeSolicitada;
   final int quantidadeColetada;
   final WebSocketService webSocketService;
+  final String idSolicitacao;
 
   LeituraPage({
     required this.idItem,
     required this.quantidadeSolicitada,
     required this.quantidadeColetada,
     required this.webSocketService,
+    required this.idSolicitacao,
   });
 
   @override
@@ -64,14 +66,16 @@ class _LeituraPageState extends State<LeituraPage> {
             'action': 'updateItemStatus',
             'id_item': widget.idItem,
             'status_item': 'FECHADO',
-            'quantidade_coletada': quantidadeColetada
+            'quantidade_coletada': quantidadeColetada,
+            'id_solicitacao': widget.idSolicitacao,
           }));
           Navigator.pop(context, 'Item coletado com sucesso!');
         } else {
           widget.webSocketService.sendMessage(json.encode({
             'action': 'updateQuantidadeColetada',
             'id_item': widget.idItem,
-            'quantidade_coletada': quantidadeColetada
+            'quantidade_coletada': quantidadeColetada,
+            'id_solicitacao': widget.idSolicitacao,
           }));
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Item coletado')));
         }

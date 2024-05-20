@@ -46,6 +46,25 @@ function checkForUpdates() {
   });
 }
 
+function checkAndUpdateSolicitacaoStatus(idSolicitacao) {
+  db.query('SELECT status_item FROM itens WHERE solicitacao = ?', [idSolicitacao], (err, results) => {
+    if (err) {
+      console.error('Erro ao consultar itens:', err);
+    } else {
+      const allClosed = results.every(item => item.status_item === 'FECHADO');
+      if (allClosed) {
+        db.query('UPDATE solicitacoes SET status = ? WHERE id_solicitacao = ?', ['FECHADO', idSolicitacao], (err) => {
+          if (err) {
+            console.error('Erro ao atualizar status da solicitação:', err);
+          } else {
+            checkForUpdates();
+          }
+        });
+      }
+    }
+  });
+}
+
 // Verifica atualizações a cada 5 segundos
 setInterval(checkForUpdates, 5000);
 
@@ -83,6 +102,7 @@ wss.on('connection', ws => {
         if (err) {
           ws.send(JSON.stringify({ error: 'Erro ao atualizar a quantidade coletada' }));
         } else {
+          checkAndUpdateSolicitacaoStatus(data.id_solicitacao);
           ws.send(JSON.stringify({ action: 'updateSuccess' }));
         }
       });
@@ -91,6 +111,7 @@ wss.on('connection', ws => {
         if (err) {
           ws.send(JSON.stringify({ error: 'Erro ao atualizar o status do item' }));
         } else {
+          checkAndUpdateSolicitacaoStatus(data.id_solicitacao);
           ws.send(JSON.stringify({ action: 'updateSuccess' }));
         }
       });

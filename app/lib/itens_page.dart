@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'websocket_service.dart';
-import 'leitura_page.dart';
+import 'leitura_page.dart';  // Certifique-se de importar LeituraPage
 
 class ItensPage extends StatefulWidget {
   final String idSolicitacao;
@@ -55,11 +55,6 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
     _loadData();
   }
 
-  @override
-  void didPushNext() {
-    // Called when a new route has been pushed, and the current route is no longer visible.
-  }
-
   IconData getStatusIcon(String status) {
     switch (status) {
       case 'ABERTO':
@@ -100,7 +95,9 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
           itemBuilder: (context, index) {
             final item = _itens[index];
             return GestureDetector(
-              onTap: () {
+              onTap: item['status_item'] == 'FECHADO'
+                  ? null
+                  : () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -109,6 +106,7 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
                       quantidadeSolicitada: item['quantidade_solicitada'],
                       quantidadeColetada: item['quantidade_coletada'],
                       webSocketService: _localWebSocketService.createNewInstance(),
+                      idSolicitacao: widget.idSolicitacao,
                     ),
                   ),
                 ).then((_) => _loadData());
@@ -138,6 +136,9 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
                       Text('Quantidade Coletada: ${item['quantidade_coletada']}'),
                     ],
                   ),
+                  trailing: item['status_item'] == 'FECHADO'
+                      ? Icon(Icons.lock, color: Colors.red)
+                      : null,
                 ),
               ),
             );
