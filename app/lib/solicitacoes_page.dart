@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'websocket_service.dart';
-import 'itens_page.dart';  // Certifique-se de importar ItensPage
+import 'itens_page.dart';
+import 'login_page.dart';
 
 class SolicitacoesPage extends StatefulWidget {
   @override
@@ -88,12 +89,25 @@ class _SolicitacoesPageState extends State<SolicitacoesPage> {
     }
   }
 
+  void _logout() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Solicitações'),
         backgroundColor: Colors.blueAccent,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
       ),
       body: Column(
         children: [

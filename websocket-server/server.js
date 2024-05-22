@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const mysql = require('mysql');
-const crypto = require('crypto');
+const mqtt = require('mqtt');
 
 // Configurar conexão com o banco de dados MySQL
 const db = mysql.createConnection({
@@ -19,13 +19,21 @@ db.connect(err => {
   }
 });
 
+// Configurar cliente MQTT
+const mqttClient = mqtt.connect('mqtt://broker.hivemq.com'); // Use o URL do seu broker MQTT
+
+mqttClient.on('connect', () => {
+  console.log('Conectado ao broker MQTT');
+});
+
 // Configurar servidor WebSocket
 const wss = new WebSocket.Server({ port: 8080 });
 
 let lastHash = '';
+let previousLampadaStatus = {}; // Objeto para rastrear o estado anterior dos itens
 
 function hashSolicitacoes(solicitacoes) {
-  return crypto.createHash('sha256').update(JSON.stringify(solicitacoes)).digest('hex');
+  return require('crypto').createHash('sha256').update(JSON.stringify(solicitacoes)).digest('hex');
 }
 
 function checkForUpdates() {
@@ -42,6 +50,36 @@ function checkForUpdates() {
           }
         });
       }
+    }
+  });
+}
+
+function checkLampadaStatus() {
+  db.query('SELECT id_item, endereco, lampada FROM itens', (err, results) => {
+    if (err) {
+      console.error('Erro ao consultar o banco de dados:', err);
+    } else {
+      results.forEach(item => {
+        const { id_item, endereco, lampada } = item;
+        const previousStatus = previousLampadaStatus[id_item];
+
+        if (lampada !== previousStatus) {
+          const message = {
+            action: lampada,
+            endereco: endereco
+          };
+
+          mqttClient.publish('lampada/status/holden', JSON.stringify(message), (err) => {
+            if (err) {
+              console.error('Erro ao publicar mensagem MQTT:', err);
+            } else {
+              console.log('Mensagem MQTT publicada:', message);
+              // Atualizar o estado anterior
+              previousLampadaStatus[id_item] = lampada;
+            }
+          });
+        }
+      });
     }
   });
 }
@@ -66,7 +104,8 @@ function checkAndUpdateSolicitacaoStatus(idSolicitacao) {
 }
 
 // Verifica atualizações a cada 5 segundos
-setInterval(checkForUpdates, 5000);
+setInterval(checkForUpdates, 500);
+setInterval(checkLampadaStatus, 500);
 
 wss.on('connection', ws => {
   console.log('Cliente conectado');
@@ -107,12 +146,20 @@ wss.on('connection', ws => {
         }
       });
     } else if (data.action === 'updateItemStatus') {
-      db.query('UPDATE itens SET status_item = ?, quantidade_coletada = ? WHERE id_item = ?', [data.status_item, data.quantidade_coletada, data.id_item], (err, results) => {
+      db.query('UPDATE itens SET status_item = ?, quantidade_coletada = ?, lampada = ? WHERE id_item = ?', [data.status_item, data.quantidade_coletada, data.lampada, data.id_item], (err, results) => {
         if (err) {
           ws.send(JSON.stringify({ error: 'Erro ao atualizar o status do item' }));
         } else {
           checkAndUpdateSolicitacaoStatus(data.id_solicitacao);
           ws.send(JSON.stringify({ action: 'updateSuccess' }));
+        }
+      });
+    } else if (data.action === 'updateLampadaStatus') {
+      db.query('UPDATE itens SET lampada = ? WHERE id_item = ?', [data.lampada, data.id_item], (err, results) => {
+        if (err) {
+          ws.send(JSON.stringify({ error: 'Erro ao atualizar o status da lâmpada' }));
+        } else {
+          ws.send(JSON.stringify({ action: 'updateLampadaSuccess' })); // Enviar uma resposta de sucesso
         }
       });
     }

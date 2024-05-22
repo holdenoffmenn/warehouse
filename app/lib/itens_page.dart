@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'websocket_service.dart';
-import 'leitura_page.dart';  // Certifique-se de importar LeituraPage
+import 'leitura_page.dart';
 
 class ItensPage extends StatefulWidget {
   final String idSolicitacao;
@@ -16,16 +16,34 @@ class ItensPage extends StatefulWidget {
 class _ItensPageState extends State<ItensPage> with RouteAware {
   late WebSocketService _localWebSocketService;
   List<dynamic> _itens = [];
+  dynamic _selectedItem; // Variável para armazenar o item selecionado
 
   @override
   void initState() {
     super.initState();
-    _localWebSocketService = widget.webSocketService.createNewInstance();
+    _localWebSocketService = widget.webSocketService;
     _loadData();
     _localWebSocketService.messages.listen((data) {
       if (data['action'] == 'itensData') {
         setState(() {
           _itens = data['data'];
+        });
+      } else if (data['action'] == 'updateLampadaSuccess') {
+        _showLoadingDialog();
+        Future.delayed(Duration(seconds: 3)).then((_) {
+          Navigator.pop(context); // Fechar o diálogo de carregamento
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LeituraPage(
+                idItem: _selectedItem['id_item'],
+                quantidadeSolicitada: _selectedItem['quantidade_solicitada'],
+                quantidadeColetada: _selectedItem['quantidade_coletada'],
+                webSocketService: _localWebSocketService,
+                idSolicitacao: widget.idSolicitacao,
+              ),
+            ),
+          ).then((_) => _loadData());
         });
       }
     });
@@ -33,12 +51,6 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
 
   void _loadData() {
     _localWebSocketService.sendMessage(json.encode({'action': 'getItens', 'id_solicitacao': widget.idSolicitacao}));
-  }
-
-  @override
-  void dispose() {
-    _localWebSocketService.dispose();
-    super.dispose();
   }
 
   @override
@@ -81,6 +93,74 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
     }
   }
 
+  void _showActionDialog(BuildContext context, dynamic item) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Escolha uma ação'),
+          content: Text('Você deseja iluminar ou cancelar?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Iluminar'),
+              onPressed: () {
+                // Armazenar o item selecionado
+                _selectedItem = item;
+
+                // Atualizar a coluna lampada para 'LIGAR'
+                _localWebSocketService.sendMessage(json.encode({
+                  'action': 'updateLampadaStatus',
+                  'id_item': item['id_item'],
+                  'lampada': 'LIGAR'
+                }));
+
+
+                // Fechar o diálogo
+                Navigator.of(context).pop();
+
+
+                // Mostrar animação de carregamento
+                _showLoadingDialog();
+
+
+
+                // Fechar o diálogo de ação
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text('Aguarde...'),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,18 +178,7 @@ class _ItensPageState extends State<ItensPage> with RouteAware {
               onTap: item['status_item'] == 'FECHADO'
                   ? null
                   : () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LeituraPage(
-                      idItem: item['id_item'],
-                      quantidadeSolicitada: item['quantidade_solicitada'],
-                      quantidadeColetada: item['quantidade_coletada'],
-                      webSocketService: _localWebSocketService.createNewInstance(),
-                      idSolicitacao: widget.idSolicitacao,
-                    ),
-                  ),
-                ).then((_) => _loadData());
+                _showActionDialog(context, item);
               },
               child: Card(
                 shape: RoundedRectangleBorder(

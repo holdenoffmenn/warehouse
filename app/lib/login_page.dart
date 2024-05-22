@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'solicitacoes_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
-
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -16,12 +15,15 @@ class _LoginPageState extends State<LoginPage> {
   void _login() {
     if (_formKey.currentState!.validate()) {
       if (_emailController.text == 'admin' && _passwordController.text == 'admin') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful')),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SolicitacoesPage(),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid credentials')),
+          SnackBar(content: Text('Invalid credentials')),
         );
       }
     }
@@ -31,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.blueAccent, Colors.lightBlue, Colors.blueAccent],
             begin: Alignment.topLeft,
@@ -51,11 +53,11 @@ class _LoginPageState extends State<LoginPage> {
                       .fadeIn(duration: 1000.ms)
                       .slideY(begin: -1.0, end: 0.0),
                   SizedBox(height: 20),
-                  const Text(
+                  Text(
                     'Warehouse Login',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ).animate().fadeIn(duration: 1200.ms).slideX(begin: 1.0, end: 0.0),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -73,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ).animate().fadeIn(duration: 1400.ms).slideX(begin: -1.0, end: 0.0),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
@@ -92,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                       return null;
                     },
                   ).animate().fadeIn(duration: 1600.ms).slideX(begin: 1.0, end: 0.0),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
@@ -101,9 +103,9 @@ class _LoginPageState extends State<LoginPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Login',
                       style: TextStyle(fontSize: 18, color: Colors.blueAccent),
                     ),

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'websocket_service.dart';
 import 'dart:convert';
+import 'websocket_service.dart';
 
 class LeituraPage extends StatefulWidget {
   final String idItem;
@@ -25,7 +24,6 @@ class LeituraPage extends StatefulWidget {
 
 class _LeituraPageState extends State<LeituraPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? result;
   QRViewController? controller;
   late int quantidadeColetada;
 
@@ -62,12 +60,14 @@ class _LeituraPageState extends State<LeituraPage> {
           quantidadeColetada++;
         });
         if (quantidadeColetada == widget.quantidadeSolicitada) {
+          // Atualizar o status do item e definir lampada como 'DESLIGAR'
           widget.webSocketService.sendMessage(json.encode({
             'action': 'updateItemStatus',
             'id_item': widget.idItem,
             'status_item': 'FECHADO',
             'quantidade_coletada': quantidadeColetada,
             'id_solicitacao': widget.idSolicitacao,
+            'lampada': 'DESLIGAR'
           }));
           Navigator.pop(context, 'Item coletado com sucesso!');
         } else {

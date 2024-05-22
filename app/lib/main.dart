@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'solicitacoes_page.dart';
+import 'login_page.dart'; // Certifique-se de importar a LoginPage
+import 'solicitacoes_page.dart'; // Certifique-se de importar a SolicitacoesPage
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Warehouse App',
       navigatorObservers: [routeObserver],
-      home: SolicitacoesPage(),
+      home: LoginPage(),
     );
   }
 }
